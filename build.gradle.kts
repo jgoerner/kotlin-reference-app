@@ -1,8 +1,10 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import com.bmuschko.gradle.docker.tasks.image.*
 
 plugins {
 	id("org.springframework.boot") version "2.1.5.RELEASE"
 	id("io.spring.dependency-management") version "1.0.7.RELEASE"
+	id("com.bmuschko.docker-remote-api") version "4.9.0"
 	kotlin("jvm") version "1.2.71"
 	kotlin("plugin.spring") version "1.2.71"
 }
@@ -28,4 +30,14 @@ tasks.withType<KotlinCompile> {
 		freeCompilerArgs = listOf("-Xjsr305=strict")
 		jvmTarget = "1.8"
 	}
+}
+
+val createDockerFileTask by tasks.creating(Dockerfile::class) {
+	from("openjdk:8-jdk-alpine")
+	label(mapOf("maintainer" to "Joshua Görner 'joshua.goerner@gmail.com'"))
+}
+
+tasks.create("buildImage", DockerBuildImage::class) {
+	dependsOn(createDockerFileTask)
+	tags.add("jgoerner/${project.name}:$version")
 }
